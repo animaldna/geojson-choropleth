@@ -2,6 +2,10 @@ var _ = require('underscore');
 var async = require('async');
 var request = require('request');
 
+function sortNumber(a,b) {
+    return a - b;
+}
+
 var getData = function(callback){
 	request('https://cdph.data.ca.gov/resource/v5bp-qkhg.json?$limit=50000&$select=county,up_to_date_2&$where=reported=%27Y%27',function(err,res,body){
 	 	if(!err && res.statusCode == 200){
@@ -51,6 +55,7 @@ var setRanges = function(countyAvgs, callback){
 	var min = _.min(allVals);
 	var max = _.max(allVals);
 	var itemsInRange = (max - min) + 1;
+	console.log(allVals.sort(sortNumber) + " with " + itemsInRange + " items in range");
 	callback(null);
 }
 
