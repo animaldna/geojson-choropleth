@@ -2,6 +2,12 @@ var _ = require('underscore');
 var async = require('async');
 var request = require('request');
 
+//choropleth colors, in order from light -> dark
+var colors = ['#f2f0f7','#cbc9e2','#9e9ac8','#756bb1','#54278f'];
+
+//will eventually store a function for choosing color of county
+var setColor;
+
 function sortNumber(a,b) {
     return a - b;
 }
@@ -52,9 +58,13 @@ var setRanges = function(countyAvgs, callback){
 	_.each(countyAvgs,function(val){
 		allVals.push(parseInt(val,10));
 	});
-	var min = _.min(allVals);
-	var max = _.max(allVals);
-	var itemsInRange = (max - min) + 1;
+	var min = Math.round(((_.min(allVals)/10) * 10); 
+	var itemsInRange = (100 - min) + 1;
+
+	if(itemsInRange % 5 === 0){
+		console.log('even split');
+	}
+
 	console.log(allVals.sort(sortNumber) + " with " + itemsInRange + " items in range");
 	callback(null);
 }
