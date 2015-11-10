@@ -5,6 +5,23 @@ var request = require('request');
 //choropleth colors, in order from light -> dark
 var colors = ['#f2f0f7','#cbc9e2','#9e9ac8','#756bb1','#54278f'];
 
+function setColors(value){
+	if(value <= 50){
+		return "#C9C9C9";
+	} else if (value < 61){
+		return "#f2f0f7";
+	} else if (value > 60 && value < 71){
+		return "#cbc9e2";
+	} else if (value > 70 && value < 81){
+		return "#9e9ac8";
+	} else if (value > 80 && value < 91){
+		return "#756bb1";
+	} else {
+		return "#54278f";
+	}
+}
+
+
 function sortNumber(a,b) {
     return a - b;
 }
@@ -50,7 +67,11 @@ var calcAvgs = function (countyData, callback){
 	callback(null,countyAvgs);
 }
 
-var setRanges = function(countyAvgs, callback){
+var generateJSON = function(countyAvgs, callback){
+	
+}
+
+/*var setRanges = function(countyAvgs, callback){
 	var allVals = [];
 	_.each(countyAvgs,function(val){
 		allVals.push(parseInt(val,10));
@@ -63,11 +84,11 @@ var setRanges = function(countyAvgs, callback){
 	}
 
 	var setColors = function(colors,range){
-		
+
 	}
 
 	callback(null);
-}
+}*/
 
 
 
