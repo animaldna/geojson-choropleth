@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src='http://cdn.zingchart.com/zingchart.min.js'></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  	<script src="http://cdn.zingchart.com/modules/zingchart-maps.min.js"></script>
+	<script src="http://cdn.zingchart.com/modules/zingchart-maps-geojson.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Choropleth Map with ZingChart</title>
+</head>
+<body>
+  <div id="choropleth-map"></div>
+  <script>
+   	zingchart.maps.loadGeoJSON({
+    id : 'california', // Give the map an id
+    url : 'http://www.zingchart.com/resources/calif_geo.json', // GeoJSON object for CA
+    style : { //Optional styling options
+        poly : {
+            label : {
+                visible : false    
+            }
+        }
+    },
+    callback : function() { // Function called when GeoJSON is loaded
+      $.get('http://www.zingchart.com/resources/zingMap.json',function(data){
+        var items = data;
+        zingchart.render({
+            id : 'choropleth-map',
+            width : 722,
+            height : 500,
+            data : {
+                "title":{
+                  "text":"<strong>2014-2015</strong> Immunization Percentages <br> in California Child Care Facilities",
+                  "font-size":16,
+                  "text-align":"right",
+                  "font-weight":"normal"
+                },
+                "source":{
+                  "text":"Source: CA Dept of Public Health",
+                  "url":"https://cdph.data.ca.gov/Healthcare/School-Immunizations-In-Child-Care-2014-2015/bvmi-h8cn"
+                },
+                "subtitle":{
+                  "y":50,
+                  "text":"% of children from reporting facilities<br> that are up to date on their vaccinations",
+                  "text-align":"right",
+                  "font-weight":"normal",
+                },
+                "shapes":
+                [
+                    {
+                        "type":"zingchart.maps", // Set shape to map type
+                        "options":{
+                            "name":"california", // Reference to the id set in loadGeoJSON()
+                            "scale":true,
+                            "style":{
+                              items: items
+                            }// Automatically scale to correct proportions
+                        }
+                    },
+                    {
+                      "type":"rect",
+                      "height":20,
+                      "width":20,
+                      "x":"85%",
+                      "y":"60%",
+                      "background-color":"#C9C9C9",
+                      "label":{
+                        "text":"< = 50%",
+                        "font-weight":"bold",
+                        "font-size":14,
+                        "x":667
+                      }
+                    },
+                      {
+                        "type":"rect",
+                        "height":20,
+                        "width":20,
+                        "x":"85%",
+                        "y":"65%",
+                        "background-color":"#f2f0f7",
+                        "label":{
+                          "text":"51 - 60%",
+                          "font-weight":"bold",
+                          "font-size":14,
+                          "x":667,
+                          "y":325
+                        }
+                    },
+                    {
+                        "type":"rect",
+                        "height":20,
+                        "width":20,
+                        "x":"85%",
+                        "y":"70%",
+                        "background-color":"#cbc9e2",
+                        "label":{
+                          "text":"61 - 70%",
+                          "font-weight":"bold",
+                          "font-size":14,
+                          "x":667,
+                          "y":352
+                        }
+                    },
+                    {
+                        "type":"rect",
+                        "height":20,
+                        "width":20,
+                        "x":"85%",
+                        "y":"75%",
+                        "background-color":"#9e9ac8",
+                        "label":{
+                          "text":"71 - 80%",
+                          "font-weight":"bold",
+                          "font-size":14,
+                          "x":667,
+                          "y":378
+                        }
+                    },
+                    {
+                        "type":"rect",
+                        "height":20,
+                        "width":20,
+                        "x":"85%",
+                        "y":"80%",
+                        "background-color":"#756bb1",
+                        "label":{
+                          "text":"81 - 90%",
+                          "font-weight":"bold",
+                          "font-size":14,
+                          "x":667,
+                          "y":402
+                        }
+                    },
+                    {
+                        "type":"rect",
+                        "height":20,
+                        "width":20,
+                        "x":"85%",
+                        "y":"85%",
+                        "background-color":"#54278f",
+                        "label":{
+                          "text":"91 - 100%",
+                          "font-weight":"bold",
+                          "font-size":14,
+                          "x":662,
+                          "y":426
+                        }
+                    }
+                ]
+            }
+        })
+      });
+    }
+});
+  </script>
+</body>
+</html>

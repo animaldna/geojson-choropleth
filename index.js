@@ -1,11 +1,9 @@
 var _ = require('underscore');
 var async = require('async');
 var request = require('request');
+var fs = require('fs');
 
-//choropleth colors, in order from light -> dark
-var colors = ['#f2f0f7','#cbc9e2','#9e9ac8','#756bb1','#54278f'];
-
-function setColors(value){
+function setColor(value){
 	if(value <= 50){
 		return "#C9C9C9";
 	} else if (value < 61){
@@ -21,13 +19,9 @@ function setColors(value){
 	}
 }
 
-
-function sortNumber(a,b) {
-    return a - b;
-}
-
 var getData = function(callback){
-	request('https://cdph.data.ca.gov/resource/v5bp-qkhg.json?$limit=50000&$select=county,up_to_date_2&$where=reported=%27Y%27',function(err,res,body){
+	var url = 'https://cdph.data.ca.gov/resource/v5bp-qkhg.json?$limit=50000&$select=county,up_to_date_2&$where=reported=%27Y%27';
+	request(url,function(err,res,body){
 	 	if(!err && res.statusCode == 200){
 		 	callback(null,body);
 		 }
@@ -37,6 +31,7 @@ var getData = function(callback){
 var condenseData = function(body, callback){
 	var rawJSON = JSON.parse(body);
 	var countyData = {};
+	var currentCounty;
 	for(var i=0; i < rawJSON.length; i++){
 		currentCounty = rawJSON[i].county;
 		if(countyData.hasOwnProperty(currentCounty)){
@@ -45,12 +40,12 @@ var condenseData = function(body, callback){
 			countyData[currentCounty] = [parseInt(rawJSON[i].up_to_date_2,10)];
 		}
 	}
-	//console.log(JSON.stringify(countyData));
+
 	callback(null,countyData);
 }
 
 var calcAvgs = function (countyData, callback){
-	var countyAvgs = {};
+	var countyAvgs = [];
 	var sum;
 	var avg;
 	_.each(countyData,function(value,key){
@@ -59,44 +54,65 @@ var calcAvgs = function (countyData, callback){
 		}, 0);
 
 		avg = sum / (value.length);
-		avg = avg.toFixed(2);
+		avg = Math.round( avg * 1e2 ) / 1e2;
 
-		countyAvgs[key] = avg;
+		countyAvgs.push(avg);
 	});
-	//console.log('countyAvgs is', countyAvgs);
+
 	callback(null,countyAvgs);
 }
 
-var generateJSON = function(countyAvgs, callback){
-	
+var stripSortGeo = function(countyAvgs, callback){
+	var geoJSON = {};
+	fs.readFile('public/calif_geo.json',function(err,data){
+		if(err){
+			console.log(err);
+		}
+		geoJSON = JSON.parse(data);
+		geoJSON = geoJSON.features;
+		
+		var newGeo = _.sortBy(geoJSON, function(feature){
+			return feature.properties.name;
+		});
+		callback(null, countyAvgs, newGeo);
+	});
 }
 
-/*var setRanges = function(countyAvgs, callback){
-	var allVals = [];
-	_.each(countyAvgs,function(val){
-		allVals.push(parseInt(val,10));
+var generateJSON = function(countyAvgs, newGeo, callback){
+	var zingmapJSON = {};
+	var average;
+	var id;
+	var color;
+	var name;
+	
+	_.each(newGeo, function(value, key){
+		id = value.id;
+		id = id.replace(/\./g,'_'); //replace . with _ for ZC compatibility
+		name = value.properties.name;
+		average = countyAvgs[key]; //we sorted the features array (newGeo) so we could use this key
+		
+		zingmapJSON[id] = {
+			"backgroundColor": setColor(average),
+			"hover-state":{
+				"border-color":"#e0e0e0",
+				"border-width":2,
+				"background-color": setColor(average)
+			},
+			"tooltip":{
+				"text": name + " County <br>" + average + "%"
+			}
+		}
 	});
-	var min = Math.round((_.min(allVals)/10) * 10); 
-	var itemsInRange = (100 - min) + 1;
-
-	if(itemsInRange % 5 === 0){
-		console.log('even split');
-	}
-
-	var setColors = function(colors,range){
-
-	}
-
-	callback(null);
-}*/
-
-
+	fs.writeFile('./zingMap.json', JSON.stringify(zingmapJSON));
+	callback(null,zingmapJSON);
+}
 
 async.waterfall([
 	getData,
 	condenseData,
 	calcAvgs,
-	setRanges
+	stripSortGeo,
+	generateJSON
 ],function(err, result){
-	//
+	console.log('\n good job! check out your JSON!');
 });
